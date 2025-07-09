@@ -1,0 +1,21 @@
+apiVersion: v2
+name: theDefendStack-app
+description: A Helm chart for TheDefendStack Application Security Platform
+type: application
+version: 1.0.1
+appVersion: "1.0.1"
+icon: https://github.com/TheDefendStack-code/TheDefendStack-Secrets-SCA/blob/main/static/dark.svg
+keywords:
+  - security
+  - appsec
+  - DefendStack
+home: https://theDefendStack.org
+sources:
+  - https://github.com/TheDefendStack-code/TheDefendStack-Secrets-SCA/tree/main
+maintainers:
+  - name: TheDefendStack Team
+    email: support@theDefendStack.org
+dependencies:
+  - name: postgresql
+    version: 12.0.0
+    repository: https://charts.bitnami.com/bitnami

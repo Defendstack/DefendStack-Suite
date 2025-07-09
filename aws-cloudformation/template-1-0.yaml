@@ -1,0 +1,861 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Full-stack deployment with Frontend, Backend, and RDS for AWS Marketplace'
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: "Network Configuration"
+        Parameters:
+          - CreateNewVPC
+          - ExistingVPCId
+          - ExistingPublicSubnet1
+          - ExistingPublicSubnet2
+          - ExistingPrivateSubnet1
+          - ExistingPrivateSubnet2
+      - Label:
+          default: "Database Configuration"
+        Parameters:
+          - DBPassword
+          - DBInstanceClass
+      - Label:
+          default: "Application Configuration"
+        Parameters:
+          - FrontendImageUri
+          - BackendMainImageUri
+          - BackendAuthImageUri
+          - Environment
+          - MinContainers
+          - MaxContainers
+          - CPUThreshold
+
+Parameters:
+  CreateNewVPC:
+    Type: String
+    AllowedValues: ["true", "false"]
+    Default: "true"
+    Description: Choose if you want to create a new VPC (true) or use an existing VPC (false)
+
+  ExistingVPCId:
+    Type: String
+    Description: "[Optional] Existing VPC ID if you chose to use an existing VPC"
+    Default: ""
+
+  ExistingPublicSubnet1:
+    Type: String
+    Description: "[Optional] Existing Public Subnet 1 ID"
+    Default: ""
+
+  ExistingPublicSubnet2:
+    Type: String
+    Description: "[Optional] Existing Public Subnet 2 ID"
+    Default: ""
+
+  ExistingPrivateSubnet1:
+    Type: String
+    Description: "[Optional] Existing Private Subnet 1 ID"
+    Default: ""
+
+  ExistingPrivateSubnet2:
+    Type: String
+    Description: "[Optional] Existing Private Subnet 2 ID"
+    Default: ""
+
+  Environment:
+    Type: String
+    Default: TheFirewall-secrets
+    AllowedValues:
+      - TheFirewall-secrets
+    Description: Environment name
+
+  DBPassword:
+    Type: String
+    NoEcho: true
+    Description: Password for PostgreSQL database
+    MinLength: 8
+    MaxLength: 41
+    AllowedPattern: ".*"
+    ConstraintDescription: Database password must contain only alphanumeric characters
+
+  DBInstanceClass:
+    Type: String
+    Default: db.t3.micro
+    AllowedValues:
+      - db.t3.micro
+      - db.t3.small
+      - db.t3.medium
+    Description: Database instance size
+
+
+  MinContainers:
+    Type: Number
+    Default: 2
+    MinValue: 2
+    MaxValue: 5
+    Description: Minimum number of containers for auto-scaling
+
+  MaxContainers:
+    Type: Number
+    Default: 4
+    MinValue: 3
+    MaxValue: 6
+    Description: Maximum number of containers for auto-scaling
+
+  CPUThreshold:
+    Type: Number
+    Default: 70
+    MinValue: 20
+    MaxValue: 80
+    Description: CPU threshold for auto-scaling (percentage)
+  DBAllocatedStorage:
+    Type: Number
+    Default: 20
+    MinValue: 20
+    MaxValue: 16384
+    Description: Initial storage allocation in GiB (20-16384)
+
+  DBMaxAllocatedStorage:
+    Type: Number
+    Default: 100
+    MinValue: 20
+    MaxValue: 16384
+    Description: Maximum storage allocation in GiB for autoscaling (must be greater than or equal to DBAllocatedStorage)
+
+Conditions:
+  CreateVPC: !Equals [!Ref CreateNewVPC, "true"]
+  UseExistingVPC: !Equals [!Ref CreateNewVPC, "false"]
+
+Rules:
+  ValidateVPCParameters:
+    RuleCondition: !Equals [!Ref CreateNewVPC, "false"]
+    Assertions:
+      - Assert: !Not [!Equals [!Ref ExistingVPCId, ""]]
+        AssertDescription: "ExistingVPCId is required when using an existing VPC"
+      - Assert: !Not [!Equals [!Ref ExistingPublicSubnet1, ""]]
+        AssertDescription: "ExistingPublicSubnet1 is required when using an existing VPC"
+      - Assert: !Not [!Equals [!Ref ExistingPublicSubnet2, ""]]
+        AssertDescription: "ExistingPublicSubnet2 is required when using an existing VPC"
+      - Assert: !Not [!Equals [!Ref ExistingPrivateSubnet1, ""]]
+        AssertDescription: "ExistingPrivateSubnet1 is required when using an existing VPC"
+      - Assert: !Not [!Equals [!Ref ExistingPrivateSubnet2, ""]]
+        AssertDescription: "ExistingPrivateSubnet2 is required when using an existing VPC"
+
+Mappings:
+  EnvironmentMap:
+    TheFirewall-secrets:
+      VPCCIDR: 10.0.0.0/16
+      PublicSubnet1CIDR: 10.0.1.0/24
+      PublicSubnet2CIDR: 10.0.2.0/24
+      PrivateSubnet1CIDR: 10.0.3.0/24
+      PrivateSubnet2CIDR: 10.0.4.0/24
+      FrontendImage: defendstack/defendstack-frontend:1.0
+      BackendMainImage: defendstack/defendstack-backend-secrethound:1.0
+      BackendAuthImage: defendstack/defendstack-backend-auth:1.0
+    
+
+Resources:
+  # VPC Resources
+  VPC:
+    Type: AWS::EC2::VPC
+    Condition: CreateVPC
+    Properties:
+      CidrBlock: !FindInMap [EnvironmentMap, !Ref Environment, VPCCIDR]
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${Environment}-VPC
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Condition: CreateVPC
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub ${Environment}-IGW
+
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Condition: CreateVPC
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Condition: CreateVPC
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !FindInMap [EnvironmentMap, !Ref Environment, PublicSubnet1CIDR]
+      AvailabilityZone: !Select [0, !GetAZs '']
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${Environment}-PublicSubnet1
+
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Condition: CreateVPC
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !FindInMap [EnvironmentMap, !Ref Environment, PublicSubnet2CIDR]
+      AvailabilityZone: !Select [1, !GetAZs '']
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${Environment}-PublicSubnet2
+
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Condition: CreateVPC
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !FindInMap [EnvironmentMap, !Ref Environment, PrivateSubnet1CIDR]
+      AvailabilityZone: !Select [0, !GetAZs '']
+      Tags:
+        - Key: Name
+          Value: !Sub ${Environment}-PrivateSubnet1
+
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Condition: CreateVPC
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !FindInMap [EnvironmentMap, !Ref Environment, PrivateSubnet2CIDR]
+      AvailabilityZone: !Select [1, !GetAZs '']
+      Tags:
+        - Key: Name
+          Value: !Sub ${Environment}-PrivateSubnet2
+
+  # NAT Gateway Components
+  NatGatewayEIP:
+    Type: AWS::EC2::EIP
+    Condition: CreateVPC
+    DependsOn: AttachGateway
+    Properties:
+      Domain: vpc
+
+  NatGateway:
+    Type: AWS::EC2::NatGateway
+    Condition: CreateVPC
+    Properties:
+      AllocationId: !GetAtt NatGatewayEIP.AllocationId
+      SubnetId: !Ref PublicSubnet1
+
+  # Route Tables
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Condition: CreateVPC
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${Environment}-PublicRT
+
+  PublicRoute:
+    Type: AWS::EC2::Route
+    Condition: CreateVPC
+    DependsOn: AttachGateway
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  PublicSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Condition: CreateVPC
+    Properties:
+      SubnetId: !Ref PublicSubnet1
+      RouteTableId: !Ref PublicRouteTable
+
+  PublicSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Condition: CreateVPC
+    Properties:
+      SubnetId: !Ref PublicSubnet2
+      RouteTableId: !Ref PublicRouteTable
+
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Condition: CreateVPC
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${Environment}-PrivateRT
+
+  PrivateRoute:
+    Type: AWS::EC2::Route
+    Condition: CreateVPC
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGateway
+
+  PrivateSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Condition: CreateVPC
+    Properties:
+      SubnetId: !Ref PrivateSubnet1
+      RouteTableId: !Ref PrivateRouteTable
+
+  PrivateSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Condition: CreateVPC
+    Properties:
+      SubnetId: !Ref PrivateSubnet2
+      RouteTableId: !Ref PrivateRouteTable
+
+  # Security Groups
+  ALBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for Application Load Balancer
+      VpcId: !If [CreateVPC, !Ref VPC, !Ref ExistingVPCId]
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Sub ${Environment}-ALB-SG
+
+  FrontendSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for frontend container
+      VpcId: !If [CreateVPC, !Ref VPC, !Ref ExistingVPCId]
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3000
+          ToPort: 3000
+          SourceSecurityGroupId: !Ref ALBSecurityGroup
+      Tags:
+        - Key: Name
+          Value: !Sub ${Environment}-Frontend-SG
+
+  BackendMainSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for backend container
+      VpcId: !If [CreateVPC, !Ref VPC, !Ref ExistingVPCId]
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 8000
+          ToPort: 8000
+          SourceSecurityGroupId: !Ref ALBSecurityGroup
+      Tags:
+        - Key: Name
+          Value: !Sub ${Environment}-BackendM-SG
+
+  BackendAuthSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for backend container
+      VpcId: !If [CreateVPC, !Ref VPC, !Ref ExistingVPCId]
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3000
+          ToPort: 3000
+          SourceSecurityGroupId: !Ref ALBSecurityGroup
+      Tags:
+        - Key: Name
+          Value: !Sub ${Environment}-BackendA-SG
+
+  DBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for RDS
+      VpcId: !If [CreateVPC, !Ref VPC, !Ref ExistingVPCId]
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          SourceSecurityGroupId: !Ref BackendMainSecurityGroup
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          SourceSecurityGroupId: !Ref BackendAuthSecurityGroup
+      Tags:
+        - Key: Name
+          Value: !Sub ${Environment}-DB-SG
+
+  # RDS Resources
+  DBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Subnet group for RDS
+      SubnetIds: !If 
+        - CreateVPC
+        - [!Ref PrivateSubnet1, !Ref PrivateSubnet2]
+        - [!Ref ExistingPrivateSubnet1, !Ref ExistingPrivateSubnet2]
+
+  RDSDBParameterGroup:
+    Type: AWS::RDS::DBParameterGroup
+    Properties:
+      Description: Custom parameter group for RDS
+      Family: postgres17  # Ensure this matches your RDS engine version
+      Parameters:
+        rds.force_ssl: "0"  # Ensure this is a string
+
+  DatabaseInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      Engine: postgres
+      DBInstanceClass: !Ref DBInstanceClass
+      AllocatedStorage: !Ref DBAllocatedStorage
+      DBName: postgres
+      MasterUsername: postgres
+      MasterUserPassword: !Ref DBPassword
+      VPCSecurityGroups: 
+        - !Ref DBSecurityGroup
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      PubliclyAccessible: false
+      DBParameterGroupName: !Ref RDSDBParameterGroup
+      Tags:
+        - Key: Name
+          Value: !Sub ${Environment}-RDS
+
+  # ECS Resources
+  ECSCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Sub ${Environment}-cluster
+      CapacityProviders:
+        - FARGATE
+        - FARGATE_SPOT
+      DefaultCapacityProviderStrategy:
+        - CapacityProvider: FARGATE
+          Weight: 1
+
+  # Load Balancer Resources
+  ApplicationLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: !Sub ${Environment}-alb
+      Scheme: internet-facing
+      LoadBalancerAttributes:
+        - Key: idle_timeout.timeout_seconds
+          Value: '60'
+      SecurityGroups:
+        - !Ref ALBSecurityGroup
+      Subnets: !If 
+        - CreateVPC
+        - [!Ref PublicSubnet1, !Ref PublicSubnet2]
+        - [!Ref ExistingPublicSubnet1, !Ref ExistingPublicSubnet2]
+
+  ApplicationLoadBalancerBackend:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: !Sub ${Environment}-backend-alb
+      Scheme: internet-facing
+      LoadBalancerAttributes:
+        - Key: idle_timeout.timeout_seconds
+          Value: '60'
+      SecurityGroups:
+        - !Ref ALBSecurityGroup
+      Subnets: !If 
+        - CreateVPC
+        - [!Ref PublicSubnet1, !Ref PublicSubnet2]
+        - [!Ref ExistingPublicSubnet1, !Ref ExistingPublicSubnet2]
+
+  FrontendTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Sub ${Environment}-frontend-tg
+      TargetType: ip
+      Port: 3000
+      Protocol: HTTP
+      VpcId: !If [CreateVPC, !Ref VPC, !Ref ExistingVPCId]
+      HealthCheckPath: /
+      HealthCheckIntervalSeconds: 30
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      UnhealthyThresholdCount: 3
+    
+  LoadBalancerListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref ApplicationLoadBalancer
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref FrontendTargetGroup
+
+  BackendTargetGroupMain:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Sub ${Environment}-Bmain-tg
+      TargetType: ip
+      Port: 8000
+      Protocol: HTTP
+      VpcId: !If [CreateVPC, !Ref VPC, !Ref ExistingVPCId]
+      HealthCheckPath: /health
+      HealthCheckIntervalSeconds: 60
+      HealthCheckTimeoutSeconds: 20
+      HealthyThresholdCount: 5
+      UnhealthyThresholdCount: 10
+  
+  BackendTargetGroupAuth:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Sub ${Environment}-Bauth-tg
+      TargetType: ip
+      Port: 3000
+      Protocol: HTTP
+      VpcId: !If [CreateVPC, !Ref VPC, !Ref ExistingVPCId]
+      HealthCheckPath: /v2/user-auth/health
+      HealthCheckIntervalSeconds: 60
+      HealthCheckTimeoutSeconds: 20
+      HealthyThresholdCount: 5
+      UnhealthyThresholdCount: 10
+
+  BackendLoadBalancerListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref ApplicationLoadBalancerBackend
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref BackendTargetGroupMain
+
+  BackendMainListenerRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      ListenerArn: !Ref BackendLoadBalancerListener
+      Priority: 1
+      Conditions:
+        - Field: path-pattern
+          Values: 
+            - /v2/user-auth/*  # Adjust path pattern as needed
+      Actions:
+        - Type: forward
+          TargetGroupArn: !Ref BackendTargetGroupAuth
+
+  BackendAuthListenerRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      ListenerArn: !Ref BackendLoadBalancerListener
+      Priority: 2
+      Conditions:
+        - Field: path-pattern
+          Values: 
+            - /api/v2/*  # Adjust path pattern as needed
+      Actions:
+        - Type: forward
+          TargetGroupArn: !Ref BackendTargetGroupMain
+
+  # Task Execution Role
+  ECSTaskExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+      Tags:
+        - Key: Name
+          Value: !Sub ${Environment}-ECSTaskExecutionRole
+
+  # Task Definitions
+  FrontendTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Sub ${Environment}-frontend
+      Cpu: '512'
+      Memory: '1024'
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      ExecutionRoleArn: !Ref ECSTaskExecutionRole
+      ContainerDefinitions:
+        - Name: frontend
+          Image: !FindInMap [EnvironmentMap, !Ref Environment, FrontendImage]
+          Essential: true
+          PortMappings:
+            - ContainerPort: 3000
+          Environment:
+            - Name: VITE_API_BASE_URL
+              Value: !Sub http://${ApplicationLoadBalancerBackend.DNSName}
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref CloudWatchLogsGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: frontend
+      Tags:
+        - Key: Name
+          Value: !Sub ${Environment}-frontend-task
+
+  BackendTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Sub ${Environment}-backend
+      Cpu: '1024'
+      Memory: '2048'
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      ExecutionRoleArn: !Ref ECSTaskExecutionRole
+      ContainerDefinitions:
+        - Name: backendMain
+          Image: !FindInMap [EnvironmentMap, !Ref Environment, BackendMainImage]
+          Essential: true
+          PortMappings:
+            - ContainerPort: 8000  
+          Environment:
+            - Name: POSTGRES_USER
+              Value: postgres
+            - Name: POSTGRES_PASSWORD
+              Value: !Ref DBPassword
+            - Name: POSTGRES_DB
+              Value: postgres
+            - Name: POSTGRES_HOST
+              Value: !GetAtt DatabaseInstance.Endpoint.Address
+            - Name: POSTGRES_PORT
+              Value: '5432'
+            - Name: SECRET_KEY
+              Value: !Sub ${AWS::StackName}-${AWS::Region}-secret
+            - Name: ALGORITHM
+              Value: HS256
+            - Name: ACCESS_TOKEN_EXPIRE_MINUTES
+              Value: '1440'
+            - Name: PORT
+              Value: '8000'
+            - Name: FRONTEND_URL
+              Value: !Sub http://${ApplicationLoadBalancer.DNSName}
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref CloudWatchLogsGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: backend
+      Tags:
+        - Key: Name
+          Value: !Sub ${Environment}-backend-task
+
+  BackendAuthTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Sub ${Environment}-backend
+      Cpu: '1024'
+      Memory: '2048'
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      ExecutionRoleArn: !Ref ECSTaskExecutionRole
+      ContainerDefinitions:
+        - Name: backendauth
+          Image: !FindInMap [EnvironmentMap, !Ref Environment, BackendAuthImage] #change the user auth task
+          Essential: true
+          PortMappings:
+            - ContainerPort: 3000
+          Environment:
+            - Name: DB_NAME
+              Value: postgres
+            - Name: DB_USER
+              Value: postgres
+            - Name: DB_PASS
+              Value: !Ref DBPassword
+            - Name: DB_HOST
+              Value: !GetAtt DatabaseInstance.Endpoint.Address
+            - Name: DB_PORT
+              Value: '5432'
+            - Name: PORT
+              Value: '3000'
+            - Name: FRONTEND_URL
+              Value: !Sub http://${ApplicationLoadBalancer.DNSName}
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref CloudWatchLogsGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: backend
+      Tags:
+        - Key: Name
+          Value: !Sub ${Environment}-backend-task
+
+  # CloudWatch Logs
+  CloudWatchLogsGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /ecs/${Environment}-app
+      RetentionInDays: 30
+
+  # ECS Services
+  FrontendService:
+    Type: AWS::ECS::Service
+    DependsOn: LoadBalancerListener
+    Properties:
+      ServiceName: !Sub ${Environment}-frontend
+      Cluster: !Ref ECSCluster
+      TaskDefinition: !Ref FrontendTaskDefinition
+      DesiredCount: !Ref MinContainers
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          SecurityGroups:
+            - !Ref FrontendSecurityGroup
+          Subnets: !If 
+            - CreateVPC
+            - [!Ref PrivateSubnet1, !Ref PrivateSubnet2]
+            - [!Ref ExistingPrivateSubnet1, !Ref ExistingPrivateSubnet2]
+      LoadBalancers:
+        - TargetGroupArn: !Ref FrontendTargetGroup
+          ContainerName: frontend
+          ContainerPort: 3000
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 100
+      EnableECSManagedTags: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${Environment}-frontend-service
+
+  BackendMainService:
+    Type: AWS::ECS::Service
+    DependsOn: BackendLoadBalancerListener
+    Properties:
+      ServiceName: !Sub ${Environment}-bMain
+      Cluster: !Ref ECSCluster
+      TaskDefinition: !Ref BackendTaskDefinition
+      DesiredCount: !Ref MinContainers
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          SecurityGroups:
+            - !Ref BackendMainSecurityGroup
+          Subnets: !If 
+            - CreateVPC
+            - [!Ref PrivateSubnet1, !Ref PrivateSubnet2]
+            - [!Ref ExistingPrivateSubnet1, !Ref ExistingPrivateSubnet2]
+      LoadBalancers:
+        - TargetGroupArn: !Ref BackendTargetGroupMain
+          ContainerName: backendMain
+          ContainerPort: 8000
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 100
+      EnableECSManagedTags: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${Environment}-backend-main-service
+  
+  BackendAuthService:
+    Type: AWS::ECS::Service
+    DependsOn: BackendLoadBalancerListener
+    Properties:
+      ServiceName: !Sub ${Environment}-bAuth
+      Cluster: !Ref ECSCluster
+      TaskDefinition: !Ref BackendAuthTaskDefinition
+      DesiredCount: !Ref MinContainers
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          SecurityGroups:
+            - !Ref BackendAuthSecurityGroup
+          Subnets: !If 
+            - CreateVPC
+            - [!Ref PrivateSubnet1, !Ref PrivateSubnet2]
+            - [!Ref ExistingPrivateSubnet1, !Ref ExistingPrivateSubnet2]
+      LoadBalancers:
+        - TargetGroupArn: !Ref BackendTargetGroupAuth       
+          ContainerName: backendauth
+          ContainerPort: 3000
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 100
+      EnableECSManagedTags: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${Environment}-backend-auth-service
+
+  # Auto Scaling
+  FrontendAutoScalingTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Properties:
+      MaxCapacity: !Ref MaxContainers
+      MinCapacity: !Ref MinContainers
+      ResourceId: !Sub service/${ECSCluster}/${FrontendService.Name}
+      ScalableDimension: ecs:service:DesiredCount
+      ServiceNamespace: ecs
+      RoleARN: !Sub arn:aws:iam::${AWS::AccountId}:role/aws-service-role/ecs.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_ECSService
+
+  FrontendAutoScalingPolicy:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    Properties:
+      PolicyName: !Sub ${Environment}-frontend-cpu-scaling
+      PolicyType: TargetTrackingScaling
+      ScalingTargetId: !Ref FrontendAutoScalingTarget
+      TargetTrackingScalingPolicyConfiguration:
+        PredefinedMetricSpecification:
+          PredefinedMetricType: ECSServiceAverageCPUUtilization
+        TargetValue: !Ref CPUThreshold
+        ScaleInCooldown: 300
+        ScaleOutCooldown: 300
+
+  BackendAutoScalingTarget:
+    Type: AWS::ApplicationAutoScaling::ScalableTarget
+    Properties:
+      MaxCapacity: !Ref MaxContainers
+      MinCapacity: !Ref MinContainers
+      ResourceId: !Sub service/${ECSCluster}/${BackendMainService.Name}
+      ScalableDimension: ecs:service:DesiredCount
+      ServiceNamespace: ecs
+      RoleARN: !Sub arn:aws:iam::${AWS::AccountId}:role/aws-service-role/ecs.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_ECSService
+
+  BackendAutoScalingPolicy:
+    Type: AWS::ApplicationAutoScaling::ScalingPolicy
+    Properties:
+      PolicyName: !Sub ${Environment}-backend-cpu-scaling
+      PolicyType: TargetTrackingScaling
+      ScalingTargetId: !Ref BackendAutoScalingTarget
+      TargetTrackingScalingPolicyConfiguration:
+        PredefinedMetricSpecification:
+          PredefinedMetricType: ECSServiceAverageCPUUtilization
+        TargetValue: !Ref CPUThreshold
+        ScaleInCooldown: 300
+        ScaleOutCooldown: 300
+
+Outputs:
+  VpcId:
+    Description: VPC ID
+    Value: !If [CreateVPC, !Ref VPC, !Ref ExistingVPCId]
+
+  PublicSubnets:
+    Description: Public Subnet IDs
+    Value: !If 
+      - CreateVPC
+      - !Join [",", [!Ref PublicSubnet1, !Ref PublicSubnet2]]
+      - !Join [",", [!Ref ExistingPublicSubnet1, !Ref ExistingPublicSubnet2]]
+
+  PrivateSubnets:
+    Description: Private Subnet IDs
+    Value: !If 
+      - CreateVPC
+      - !Join [",", [!Ref PrivateSubnet1, !Ref PrivateSubnet2]]
+      - !Join [",", [!Ref ExistingPrivateSubnet1, !Ref ExistingPrivateSubnet2]]
+
+  LoadBalancerDNS:
+    Description: Application Load Balancer DNS Name
+    Value: !GetAtt ApplicationLoadBalancer.DNSName
+
+  DatabaseEndpoint:
+    Description: RDS Database Endpoint
+    Value: !GetAtt DatabaseInstance.Endpoint.Address
+
+  ECSClusterName:
+    Description: ECS Cluster Name
+    Value: !Ref ECSCluster
+
+  CloudWatchLogGroup:
+    Description: CloudWatch Logs Group Name
+    Value: !Ref CloudWatchLogsGroup
