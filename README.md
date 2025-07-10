@@ -4,7 +4,7 @@
   <img width="300" alt="image" src="https://github.com/Defendstack/DefendStack-Suite/blob/main/static/defendstack-logo.png"/>
 <br>
 
-<a href="https://docs.defendstack.org"><img src="https://img.shields.io/badge/Documentation-%23000000.svg?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTQgMTkuNUEyLjUgMi41IDAgMCAxIDYuNSAxN0gyMCIvPjxwYXRoIGQ9Ik02LjUgMkgyMHYyMEg2LjVBMi41IDIuNSAwIDAgMSA0IDE5LjVWNC41QTIuNSAyLjUgMCAwIDEgNi41IDJ6Ii8+PC9zdmc+"></a>&nbsp;&nbsp;<a href="https://blogs.theDefendStack.org/"><img src="https://img.shields.io/badge/Blogs-%23000000.svg?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTEyIDE5bDctNyAzIDMtNyA3LTMtM3oiLz48cGF0aCBkPSJNMTggMTNsLTEuNS03LjVMMiAybDMuNSAxNC41TDEzIDE4bDUtNXoiLz48cGF0aCBkPSJNMiAybDcuNTg2IDcuNTg2Ii8+PHBhdGggZD0iTTExIDExbC00IDQiLz48L3N2Zz4="></a>&nbsp;&nbsp;<a href="https://discord.gg/"><img src="https://img.shields.io/badge/Discord-%235865F2.svg?style=for-the-badge&logo=discord&logoColor=white"></a>&nbsp;&nbsp;<a href="mailto:support@theDefendStack.org"><img src="https://img.shields.io/badge/Support-%23000000.svg?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0ibHVjaWRlIGx1Y2lkZS1oZWxwaW5nLWhhbmQiPjxwYXRoIGQ9Ik0yIDExYTEwIDEwIDAgMSAwIDIwIDAgMTAgMTAgMCAxIDAtMjAgMHoiLz48cGF0aCBkPSJtMTAgOSA0LTQgNC40IDQuNGEyLjEgMi4xIDAgMCAxIC4zIDIuNyAxLjkgMS45IDAgMCAxLTMgLjNMMTMgOWwtMy0zeiIvPjxwYXRoIGQ9Im05IDEzLTQgNCA0LjQgNC40YTIuMSAyLjEgMCAwIDAgMi43LjMgMS45IDEuOSAwIDAgMCAuMy0zbC0yLjctMi43LTMtM3oiLz48L3N2Zz4="></a>
+<a href="https://docs.defendstack.org"><img src="https://img.shields.io/badge/Documentation-%23000000.svg?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTQgMTkuNUEyLjUgMi41IDAgMCAxIDYuNSAxN0gyMCIvPjxwYXRoIGQ9Ik02LjUgMkgyMHYyMEg2LjVBMi41IDIuNSAwIDAgMSA0IDE5LjVWNC41QTIuNSAyLjUgMCAwIDEgNi41IDJ6Ii8+PC9zdmc+"></a>&nbsp;&nbsp;<a href="https://blogs.theDefendStack.org/"><img src="https://img.shields.io/badge/Blogs-%23000000.svg?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTEyIDE5bDctNyAzIDMtNyA3LTMtM3oiLz48cGF0aCBkPSJNMTggMTNsLTEuNS03LjVMMiAybDMuNSAxNC41TDEzIDE4bDUtNXoiLz48cGF0aCBkPSJNMiAybDcuNTg2IDcuNTg2Ii8+PHBhdGggZD0iTTExIDExbC00IDQiLz48L3N2Zz4="></a>&nbsp;&nbsp;<a href="https://discord.gg/CSeVbCvK"><img src="https://img.shields.io/badge/Discord-%235865F2.svg?style=for-the-badge&logo=discord&logoColor=white"></a>&nbsp;&nbsp;<a href="mailto:admin@defendstack.org"><img src="https://img.shields.io/badge/Support-%23000000.svg?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmZmZmYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0ibHVjaWRlIGx1Y2lkZS1oZWxwaW5nLWhhbmQiPjxwYXRoIGQ9Ik0yIDExYTEwIDEwIDAgMSAwIDIwIDAgMTAgMTAgMCAxIDAtMjAgMHoiLz48cGF0aCBkPSJtMTAgOSA0LTQgNC40IDQuNGEyLjEgMi4xIDAgMCAxIC4zIDIuNyAxLjkgMS45IDAgMCAxLTMgLjNMMTMgOWwtMy0zeiIvPjxwYXRoIGQ9Im05IDEzLTQgNCA0LjQgNC40YTIuMSAyLjEgMCAwIDAgMi43LjMgMS45IDEuOSAwIDAgMCAuMy0zbC0yLjctMi43LTMtM3oiLz48L3N2Zz4="></a>
 
 </div>
 
@@ -27,17 +27,17 @@ Try out **DefendStack Suite** with our live demo!
 - **Do not perform brute force attacks, DoS, or any malicious activity.**  
 - Misuse of the demo environment may result in access restrictions.  
 
-
+---
 ## Table of Contents
 
 - [Installation](#installation)
   - [Docker Installation (with Docker Compose)](#docker-installation-with-docker-compose)
-  - [AWS CloudFormation Installation](#aws-cloudFormation-installation)
+  - [AWS CloudFormation Installation](#aws-cloudformation-installation)
+  - [Helm Installation](#helm-installation)
 - [Usage](#usage)
-- [Privacy Policy](#privacy-policy)
 - [Vulnerability Disclosure Policy](#vulnerability-disclosure-policy)
 - [Support](#support)
-
+---
 ## Installation
 
 You have two installation options: Docker and AWS CloudFormation.
@@ -72,7 +72,7 @@ You have two installation options: Docker and AWS CloudFormation.
    docker-compose down
    ```
 
-
+---
 ### AWS CloudFormation Installation
 
 1. **Access the CloudFormation Template**  
@@ -101,11 +101,95 @@ You have two installation options: Docker and AWS CloudFormation.
 5. **Deleting the Stack**  
 If you want to remove the deployment, delete the stack by selecting it in CloudFormation and clicking **Delete**.
 
-   ```
-   
+
+---
+
+### Helm Installation
+
+#### 1. Inspect `values.yaml` and Update Configuration
+
+Review and customize the default configuration in `values.yaml` based on your environment:
+
+```bash
+cat values.yaml
+```
+
+Key things to check:
+
+* Service types (e.g., `ClusterIP` vs `LoadBalancer`)
+* Image repositories and tags
+* Resource limits (CPU, memory)
+* Enabled/disabled components
 
 
+#### 2. Install the Chart Locally
 
+```bash
+helm install defendstack ./ --namespace defendstack --create-namespace
+```
+
+* `defendstack`: release name
+* `./`: path to the chart
+* `--namespace defendstack`: Helm will install resources into this namespace (and create it if it doesn't exist)
+
+
+#### 3. (Optional) Install with Custom Values
+
+If you want to override any default config, use a custom `my-values.yaml` file:
+
+```bash
+helm install defendstack ./ -f my-values.yaml --namespace defendstack --create-namespace
+```
+
+
+#### 4. Verify Deployment
+
+```bash
+kubectl get pods -n defendstack
+kubectl get svc -n defendstack
+```
+
+You should see all components like `api-gateway`, `elasticsearch`, `kibana`, `mongo`, etc., running.
+
+
+#### 5. Access the Web UI
+
+If the service type is `LoadBalancer`, get the external IP:
+
+```bash
+kubectl get svc -n defendstack
+```
+
+For `NodePort`, use:
+
+```bash
+kubectl port-forward svc/<service-name> <local-port>:<service-port> -n defendstack
+```
+
+Example:
+
+```bash
+kubectl port-forward svc/kibana 5601:5601 -n defendstack
+```
+
+Then open: `http://localhost:5601`
+
+
+### Upgrade / Reinstall
+
+To upgrade:
+
+```bash
+helm upgrade defendstack ./ --namespace defendstack -f my-values.yaml
+```
+
+To uninstall:
+
+```bash
+helm uninstall defendstack --namespace defendstack
+```
+
+---
 
 ## Usage
 
@@ -116,13 +200,13 @@ After installation, you can begin using the tools:
 
 For detailed usage instructions for each tool, refer to the respective documentation [over here](https://docs.defendStack.org).
 
-
+---
 
 ## Vulnerability Disclosure Policy
 
 At DefendStack, we take the security of our systems seriously. We value the input of security researchers and the broader community in helping to maintain high security standards. This policy sets out our commitments and guidelines for responsible vulnerability disclosure. Read our [full Policy](https://www.defendstack.org/vdp) for detailed information about vulnerability disclosure program.
 
-
+---
 
 ## Support
 
@@ -130,7 +214,7 @@ We're here to help you succeed with The DefendStack platform!
 
 📚 Documentation: https://docs.defendstack.org 
 
-💬 Community: [[Discord Community Link](https://link)] 
+💬 Community: [[Discord Community Link](https://discord.gg/CSeVbCvK)] 
 
 📧 Email: admin@defendstack.org
 
