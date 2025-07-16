@@ -14,8 +14,8 @@ frontend:
   enabled: true
   replicaCount: 2
   image:
-    repository: "theDefendStackappsec/theDefendStack-frontend"
-    tag: v1.0.1
+    repository: "defendstack/defendstack-frontend"
+    tag: "1.0"
     pullPolicy: IfNotPresent
   
   service:
@@ -39,7 +39,7 @@ backendMain:
   enabled: true
   replicaCount: 2
   image:
-    repository: "theDefendStackappsec/theDefendStack-backend-secrethound"
+    repository: "defendstack/defendstack-backend-secrethound"
     tag: v1.0.1
     pullPolicy: IfNotPresent
   
@@ -74,7 +74,7 @@ backendAuth:
   enabled: true
   replicaCount: 2
   image:
-    repository: "theDefendStackappsec/theDefendStack-backend-auth"
+    repository: "defendstack/defendstack-backend-auth"
     tag: v1.0.1
     pullPolicy: IfNotPresent
   
