@@ -1,0 +1,28 @@
+{{- if .Values.ingress.enabled -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "theDefendStack.fullname" . }}-backend-auth
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "theDefendStack.labels" . | nindent 4 }}
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/rewrite-target: /v2/user-auth/$2
+spec:
+  ingressClassName: nginx
+  rules:
+    {{- range .Values.ingress.hosts }}
+    - host: {{ .host | quote }}
+      http:
+        paths:
+          # /api/v2/user-auth/foo -> /v2/user-auth/foo
+          - path: /api/v2/user-auth(/|$)(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "theDefendStack.fullname" $ }}-backend-auth
+                port:
+                  number: {{ $.Values.backendAuth.service.port }}
+    {{- end }}
+{{- end }}
