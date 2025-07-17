@@ -104,7 +104,7 @@ If you want to remove the deployment, delete the stack by selecting it in CloudF
 
 ---
 
-### Helm Installation
+### Helm Installation (For GKE)
 
 #### 1. Inspect `values.yaml` and Update Configuration
 
@@ -116,63 +116,58 @@ cat values.yaml
 
 Key things to check:
 
-* Service types (e.g., `ClusterIP` vs `LoadBalancer`)
 * Image repositories and tags
 * Resource limits (CPU, memory)
 * Enabled/disabled components
 
+#### 2. Installing the Nginx Ingress Controller (using L7 TCP LoadBalancer)
+```bash
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.10.1/deploy/static/provider/cloud/deploy.yaml
+```
 
-#### 2. Install the Chart Locally
+#### 3. Install the Chart Locally
 
 ```bash
-helm install defendstack ./ --namespace defendstack --create-namespace
+helm upgrade --install defendstack helm-chart/ --namespace defendstack --create-namespace --dependency-update
 ```
 
 * `defendstack`: release name
-* `./`: path to the chart
+* `helm-chart/`: path to the chart
 * `--namespace defendstack`: Helm will install resources into this namespace (and create it if it doesn't exist)
 
 
-#### 3. (Optional) Install with Custom Values
+#### 4. (Optional) Install with Custom Values
 
 If you want to override any default config, use a custom `my-values.yaml` file:
 
 ```bash
-helm install defendstack ./ -f my-values.yaml --namespace defendstack --create-namespace
+helm upgrade --install defendstack helm-chart/ -f my-values.yaml --namespace defendstack --create-namespace --dependency-update
 ```
 
 
-#### 4. Verify Deployment
+#### 5. Verify Deployment
 
 ```bash
 kubectl get pods -n defendstack
 kubectl get svc -n defendstack
 ```
 
-You should see all components like `api-gateway`, `elasticsearch`, `kibana`, `mongo`, etc., running.
+You should see all components like `postgres`, `frontend`, `backend-auth`, `backend-main`, etc., running.
 
-
-#### 5. Access the Web UI
-
-If the service type is `LoadBalancer`, get the external IP:
-
+#### 6. Setting up Env
+Wait for ingress resource, it will automatically get the  ```<external-ip>```
 ```bash
-kubectl get svc -n defendstack
+kubectl get ingress -n defendstack
 ```
-
-For `NodePort`, use:
-
+Copy the ```<external-ip>``` and run the below commands
 ```bash
-kubectl port-forward svc/<service-name> <local-port>:<service-port> -n defendstack
+kubectl set env deployment/defendstack-thedefendstack-app-frontend VITE_API_BASE_URL="https://<external-ip>/api" -n defendstack
+kubectl rollout restart deployment defendstack-thedefendstack-app-frontend -n defendstack
 ```
+#### 7. Access the Web UI
 
-Example:
-
-```bash
-kubectl port-forward svc/kibana 5601:5601 -n defendstack
-```
-
-Then open: `http://localhost:5601`
+Use the same external Ip from the above step
+```https://<external-ip> (from step 6)```
 
 
 ### Upgrade / Reinstall
@@ -180,7 +175,7 @@ Then open: `http://localhost:5601`
 To upgrade:
 
 ```bash
-helm upgrade defendstack ./ --namespace defendstack -f my-values.yaml
+helm upgrade --install defendstack helm-chart/ --namespace defendstack --create-namespace --dependency-update
 ```
 
 To uninstall:
