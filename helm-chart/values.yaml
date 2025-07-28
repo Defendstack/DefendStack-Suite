@@ -15,7 +15,7 @@ frontend:
   replicaCount: 2
   image:
     repository: "defendstack/defendstack-frontend"
-    tag: "1.0"
+    tag: v1.0.11
     pullPolicy: IfNotPresent
   
   service:
@@ -40,7 +40,7 @@ backendMain:
   replicaCount: 2
   image:
     repository: "defendstack/defendstack-backend-secrethound"
-    tag: v1.0.1
+    tag: v1.0.11
     pullPolicy: IfNotPresent
   
   service:
@@ -75,7 +75,7 @@ backendAuth:
   replicaCount: 2
   image:
     repository: "defendstack/defendstack-backend-auth"
-    tag: v1.0.1
+    tag: v1.0.11
     pullPolicy: IfNotPresent
   
   service:
