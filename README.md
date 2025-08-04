@@ -12,6 +12,10 @@ Welcome to DefendStack Suite. Our security suite enhances your organization's se
 
 <img src="https://github.com/TheDefendStack-code/TheDefendStack-Secrets-SCA/blob/f44402009b80e74ed97fdaeb2945b1494021dac3/static/Untitled%20design-2.gif">
 
+<p align="center">
+  <img src="https://github.com/Defendstack/DefendStack-Suite/blob/00954e160700781d21fe3157a1306c5f060eca89/static/Defendstack-gif.gif" alt="Demo GIF" />
+</p>
+
 ## 🔥 Live Demo  
 
 Try out **DefendStack Suite** with our live demo!  
