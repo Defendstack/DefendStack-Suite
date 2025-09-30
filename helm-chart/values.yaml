@@ -14,8 +14,8 @@ frontend:
   enabled: true
   replicaCount: 2
   image:
-    repository: "defendstack/defendstack-frontend"
-    tag: v1.0.11
+    repository: "defendstack/barrackswarzone"
+    tag: frontend_1.0
     pullPolicy: IfNotPresent
   
   service:
@@ -39,8 +39,8 @@ backendMain:
   enabled: true
   replicaCount: 2
   image:
-    repository: "defendstack/defendstack-backend-secrethound"
-    tag: v1.0.11
+    repository: "defendstack/barrackswarzone"
+    tag: secrethound_1.0
     pullPolicy: IfNotPresent
   
   service:
@@ -74,8 +74,8 @@ backendAuth:
   enabled: true
   replicaCount: 2
   image:
-    repository: "defendstack/defendstack-backend-auth"
-    tag: v1.0.11
+    repository: "defendstack/barrackswarzone"
+    tag: user-auth_1.0
     pullPolicy: IfNotPresent
   
   service:
