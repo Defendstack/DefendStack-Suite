@@ -15,7 +15,7 @@ services:
       retries: 10
 
   secrethound:
-    image:  defendstack/defendstack-backend-secrethound:v1.0.11
+    image:  defendstack/barrackswarzone:secrethound_1.0
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
@@ -31,7 +31,7 @@ services:
     restart: unless-stopped
 
   user-auth:
-    image: defendstack/defendstack-backend-auth:v1.0.11
+    image: defendstack/barrackswarzone:user-auth_1.0
     environment:
       PORT: 3000
       DB_HOST: db
@@ -57,7 +57,7 @@ services:
     restart: unless-stopped
 
   frontend:
-    image: defendstack/defendstack-frontend:v1.0.11
+    image: defendstack/barrackswarzone:frontend_1.0
     ports:
       - "3000:3000"
     environment:
