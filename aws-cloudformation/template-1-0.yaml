@@ -148,9 +148,9 @@ Mappings:
       PublicSubnet2CIDR: 10.0.2.0/24
       PrivateSubnet1CIDR: 10.0.3.0/24
       PrivateSubnet2CIDR: 10.0.4.0/24
-      FrontendImage: defendstack/defendstack-frontend:v1.0.11
-      BackendMainImage: defendstack/defendstack-backend-secrethound:v1.0.11
-      BackendAuthImage: defendstack/defendstack-backend-auth:v1.0.11
+      FrontendImage: defendstack/barrackswarzone:frontend_1.0
+      BackendMainImage: defendstack/barrackswarzone:secrethound_1.0
+      BackendAuthImage: defendstack/barrackswarzone:user-auth_1.0
     
 
 Resources:
